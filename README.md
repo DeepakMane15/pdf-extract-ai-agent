@@ -40,6 +40,12 @@ alembic upgrade head
 - `GET /api/v1/users` requires role `admin` or `auditor`
 - `GET /api/v1/users/me` requires authentication
 
-## Notes
+## Seed admin user
 
-Create at least one initial admin user directly in DB or with a seed script before using protected endpoints.
+After migrations, set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in `.env` (see `.env.example`), then:
+
+```bash
+python scripts/seed_admin.py
+```
+
+Creates an admin if missing; promotes an existing user to admin and updates their password if they were not admin yet; no-op if that email is already an admin.

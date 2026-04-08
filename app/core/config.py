@@ -12,11 +12,15 @@ class Settings(BaseSettings):
     postgres_port: int = 5432
     postgres_user: str = 'postgres'
     postgres_password: str = 'postgres'
-    postgres_db: str = 'app_db'
+    postgres_db: str = 'mydb'
 
     jwt_secret_key: str = 'change-me-in-production'
     jwt_algorithm: str = 'HS256'
     access_token_expire_minutes: int = 30
+
+    seed_admin_email: str | None = None
+    seed_admin_password: str | None = None
+    seed_admin_full_name: str | None = None
 
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
