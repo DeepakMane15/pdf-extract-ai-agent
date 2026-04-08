@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     pdf_upload_dir: str = 'uploads/pdfs'
     max_pdf_upload_bytes: int = 20 * 1024 * 1024  # 20 MiB
 
+    chunk_size_chars: int = 512
+    chunk_overlap_chars: int = 64
+
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
     @computed_field

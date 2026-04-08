@@ -3,11 +3,14 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 from app.api.deps import require_roles
 from app.core.config import settings
+from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.pdf import PdfUploadResponse
+from app.services.pdf_pipeline import process_pdf_file
 
 router = APIRouter()
 
@@ -27,6 +30,7 @@ def _sanitize_original_name(name: str | None) -> str:
 async def upload_pdf(
     file: UploadFile = File(..., description='PDF file to store'),
     _: User = Depends(require_roles(UserRole.admin, UserRole.auditor)),
+    db: Session = Depends(get_db),
 ) -> PdfUploadResponse:
     if file.content_type not in _ALLOWED_CONTENT_TYPES and not (
         file.filename and file.filename.lower().endswith('.pdf')
@@ -59,9 +63,24 @@ async def upload_pdf(
 
     dest.write_bytes(body)
 
+    doc, chunk_count = process_pdf_file(
+        db,
+        file_path=dest,
+        original_filename=file.filename,
+        stored_filename=stored_name,
+        file_size_bytes=len(body),
+    )
+
+    ext = doc.extracted_text
+    cln = doc.cleaned_text
     return PdfUploadResponse(
+        document_id=doc.id,
         original_filename=file.filename,
         stored_filename=stored_name,
         content_type=file.content_type,
         size_bytes=len(body),
+        extracted_char_count=len(ext) if ext is not None else None,
+        cleaned_char_count=len(cln) if cln is not None else None,
+        chunk_count=chunk_count,
+        processing_error=doc.processing_error,
     )
