@@ -35,7 +35,7 @@ alembic upgrade head
 
 ## Auth and RBAC
 
-- `POST /api/v1/auth/login` returns a bearer JWT token
+- `POST /api/v1/auth/login` returns a bearer JWT (OAuth2 form: `username` = email, `password`)
 - `POST /api/v1/users` requires role `admin`
 - `GET /api/v1/users` requires role `admin` or `auditor`
 - `GET /api/v1/users/me` requires authentication
