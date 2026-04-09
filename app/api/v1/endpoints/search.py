@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.search import SearchHit, SearchRequest, SearchResponse
 from app.services.embeddings import embed_query
-from app.services.retrieval import search_chunks_by_embedding
+from app.services.retrieval import retrieve_chunks_ranked
 
 router = APIRouter()
 
@@ -19,7 +19,7 @@ def semantic_search(
     _: User = Depends(get_current_user),
 ) -> SearchResponse:
     """
-    Embed the query and retrieve the closest document chunks by cosine distance (pgvector).
+    Embed the query, take the top vector pool (default 20), optionally rerank with Cohere to top_k.
     """
     if not settings.openai_api_key:
         raise HTTPException(
@@ -35,7 +35,7 @@ def semantic_search(
             detail=f'Embedding request failed: {exc}',
         ) from exc
 
-    rows = search_chunks_by_embedding(db, query_vec, top_k=payload.top_k)
+    rows = retrieve_chunks_ranked(db, payload.query.strip(), query_vec, final_k=payload.top_k)
     results = [
         SearchHit(
             chunk_id=chunk.id,
@@ -43,7 +43,8 @@ def semantic_search(
             chunk_text=chunk.content,
             page_number=chunk.page_number,
             cosine_distance=distance,
+            rerank_score=rerank,
         )
-        for chunk, distance in rows
+        for chunk, distance, rerank in rows
     ]
     return SearchResponse(results=results)

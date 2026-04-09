@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     openai_chat_temperature: float = 0.3
     openai_chat_max_tokens: int = 1024
 
+    cohere_api_key: str | None = None
+    cohere_rerank_model: str = 'rerank-english-v3.0'
+    retrieval_vector_pool_size: int = 20
+
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
     @computed_field

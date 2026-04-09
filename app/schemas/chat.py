@@ -11,6 +11,10 @@ class SourceCitation(BaseModel):
     document_id: int
     page_number: int | None = None
     cosine_distance: float = Field(description='Lower is closer to the query embedding')
+    rerank_score: float | None = Field(
+        default=None,
+        description='Cohere rerank score when enabled; higher is better',
+    )
     excerpt: str = Field(description='Short preview of chunk text')
 
 

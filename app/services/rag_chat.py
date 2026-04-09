@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.schemas.chat import ChatAskResponse, SourceCitation
 from app.services.embeddings import embed_query
-from app.services.retrieval import search_chunks_by_embedding
+from app.services.retrieval import retrieve_chunks_ranked
 
 _EXCERPT_LEN = 200
 
@@ -77,7 +77,7 @@ def _parse_cited_chunk_ids(answer: str) -> list[int]:
 
 def ask_with_rag(db: Session, question: str, top_k: int) -> ChatAskResponse:
     query_vec = embed_query(question)
-    rows = search_chunks_by_embedding(db, query_vec, top_k=top_k)
+    rows = retrieve_chunks_ranked(db, question.strip(), query_vec, final_k=top_k)
 
     if not rows:
         return ChatAskResponse(
@@ -92,7 +92,7 @@ def ask_with_rag(db: Session, question: str, top_k: int) -> ChatAskResponse:
     context_blocks: list[str] = []
     sources: list[SourceCitation] = []
 
-    for chunk, distance in rows:
+    for chunk, distance, rerank in rows:
         page = chunk.page_number
         page_label = str(page) if page is not None else 'unknown'
         context_blocks.append(
@@ -106,6 +106,7 @@ def ask_with_rag(db: Session, question: str, top_k: int) -> ChatAskResponse:
                 document_id=chunk.document_id,
                 page_number=chunk.page_number,
                 cosine_distance=distance,
+                rerank_score=rerank,
                 excerpt=excerpt,
             )
         )
