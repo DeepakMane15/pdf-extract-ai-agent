@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     openai_embedding_batch_size: int = 16
     openai_embedding_max_retries: int = 6
 
+    openai_chat_model: str = 'gpt-4o-mini'
+    openai_chat_temperature: float = 0.3
+    openai_chat_max_tokens: int = 1024
+
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
     @computed_field
