@@ -14,6 +14,10 @@ class SearchRequest(BaseModel):
 class SearchHit(BaseModel):
     chunk_id: int
     document_id: int
+    document_original_filename: str | None = Field(
+        default=None,
+        description='Original upload filename for the source PDF, when available',
+    )
     chunk_text: str
     page_number: int | None = None
     cosine_distance: float = Field(

@@ -6,12 +6,12 @@ from typing import Any, ClassVar
 
 from pydantic import BaseModel, Field
 
-from app.core.config import settings
 from app.models.user import UserRole
 from app.tools.base import BaseTool
 from app.tools.context import ToolContext
 from app.services.embeddings import embed_query
 from app.services.retrieval import retrieve_chunks_ranked
+from app.services.user_openai import add_openai_usage, get_effective_openai_key
 
 
 class SearchDocsInput(BaseModel):
@@ -31,10 +31,17 @@ class SearchDocsTool(BaseTool):
         return SearchDocsInput
 
     def execute(self, ctx: ToolContext, inputs: BaseModel) -> Any:
-        if not settings.openai_api_key:
-            raise RuntimeError('Semantic search requires OPENAI_API_KEY.')
+        key = get_effective_openai_key(ctx.user)
+        if not key:
+            raise RuntimeError(
+                'No OpenAI API key: add yours in the dashboard or set OPENAI_API_KEY on the server.'
+            )
         data = inputs if isinstance(inputs, SearchDocsInput) else SearchDocsInput.model_validate(inputs)
-        vec = embed_query(data.query)
+        vec, usage = embed_query(data.query, api_key=key)
+        add_openai_usage(
+            ctx.user,
+            embed_prompt_tokens=int(usage.get('prompt_tokens', usage.get('total_tokens', 0))),
+        )
         rows = retrieve_chunks_ranked(ctx.db, data.query, vec, final_k=data.top_k)
         return {
             'hits': [

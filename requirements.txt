@@ -6,6 +6,7 @@ sqlalchemy
 psycopg[binary]
 alembic
 python-jose[cryptography]
+cryptography
 bcrypt
 email-validator
 pdfplumber

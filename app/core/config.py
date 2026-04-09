@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     app_version: str = '1.0.0'
     debug: bool = True
     api_v1_prefix: str = '/api/v1'
+    # Comma-separated origins for browser clients (e.g. Vite on :5173)
+    cors_origins: str = 'http://localhost:5173,http://127.0.0.1:5173'
 
     postgres_host: str = 'localhost'
     postgres_port: int = 5432
@@ -29,6 +31,8 @@ class Settings(BaseSettings):
     chunk_overlap_chars: int = 64
 
     openai_api_key: str | None = None
+    # Optional separate secret for encrypting per-user OpenAI keys (defaults to jwt_secret_key).
+    openai_user_key_secret: str | None = None
     openai_embedding_model: str = 'text-embedding-3-small'
     openai_embedding_batch_size: int = 16
     openai_embedding_max_retries: int = 6
@@ -42,6 +46,11 @@ class Settings(BaseSettings):
     retrieval_vector_pool_size: int = 20
 
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
+
+    @computed_field
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(',') if o.strip()]
 
     @computed_field
     @property

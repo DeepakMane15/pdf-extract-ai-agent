@@ -1,4 +1,16 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
+
+
+class PdfDocumentListItem(BaseModel):
+    id: int
+    original_filename: str | None
+    stored_filename: str
+    file_size_bytes: int
+    chunk_count: int
+    processing_error: str | None = None
+    created_at: datetime
 
 
 class PdfUploadResponse(BaseModel):

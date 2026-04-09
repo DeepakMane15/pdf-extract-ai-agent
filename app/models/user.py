@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String, func
+from sqlalchemy import BigInteger, DateTime, Enum, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -24,4 +24,26 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+    openai_api_key_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    openai_key_hint: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    openai_embed_prompt_tokens_total: Mapped[int] = mapped_column(
+        BigInteger(),
+        nullable=False,
+        server_default='0',
+        default=0,
+    )
+    openai_chat_prompt_tokens_total: Mapped[int] = mapped_column(
+        BigInteger(),
+        nullable=False,
+        server_default='0',
+        default=0,
+    )
+    openai_chat_completion_tokens_total: Mapped[int] = mapped_column(
+        BigInteger(),
+        nullable=False,
+        server_default='0',
+        default=0,
+    )
+
     tool_logs = relationship('ToolExecutionLog', back_populates='user')
+    uploaded_pdfs = relationship('PdfDocument', back_populates='uploaded_by')

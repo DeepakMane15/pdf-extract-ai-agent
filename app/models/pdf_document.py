@@ -15,6 +15,11 @@ class PdfDocument(Base):
     __tablename__ = 'pdf_documents'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    uploaded_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey('users.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
+    )
     original_filename: Mapped[str | None] = mapped_column(String(512), nullable=True)
     stored_filename: Mapped[str] = mapped_column(String(512), unique=True, index=True, nullable=False)
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -22,6 +27,8 @@ class PdfDocument(Base):
     cleaned_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     processing_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    uploaded_by = relationship('User', back_populates='uploaded_pdfs')
 
     chunks: Mapped[list['DocumentChunk']] = relationship(
         back_populates='document',
