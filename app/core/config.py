@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     chunk_size_chars: int = 512
     chunk_overlap_chars: int = 64
 
+    openai_api_key: str | None = None
+    openai_embedding_model: str = 'text-embedding-3-small'
+    openai_embedding_batch_size: int = 16
+    openai_embedding_max_retries: int = 6
+
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
     @computed_field

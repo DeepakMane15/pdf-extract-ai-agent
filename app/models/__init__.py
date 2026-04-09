@@ -1,4 +1,4 @@
-from app.models.pdf_document import PdfChunk, PdfDocument
+from app.models.pdf_document import DocumentChunk, PdfDocument
 from app.models.user import User, UserRole
 
-__all__ = ['User', 'UserRole', 'PdfDocument', 'PdfChunk']
+__all__ = ['User', 'UserRole', 'PdfDocument', 'DocumentChunk']

@@ -1,0 +1,47 @@
+# Postgres with pgvector (required for Phase 4 migrations).
+# Usage: docker compose up -d
+# Then: alembic upgrade head
+#
+# Host port 5433 avoids clashing with another Postgres already bound to 5432.
+# Point the app at it: POSTGRES_PORT=5433 (and matching user/db/password below).
+#
+# docker/initdb/*.sql runs only on first init (empty volume). For an existing DB,
+# run: scripts/sql/enable_pgvector.sql (server must ship pgvector — use pgvector image).
+#
+# Networks: all services below share the compose project network (e.g. rag_default).
+# Volumes: only `postgres` uses `pgdata` (database files). pgAdmin has no access to that
+# volume — it only talks to Postgres over TCP; that is correct.
+#
+# pgAdmin in this file: register server with Host=postgres, Port=5432 (service DNS name).
+# External my-pgadmin container: use host.docker.internal:5433 or attach it to this network:
+#   docker network connect rag_default my-pgadmin
+#   then Host=rag-postgres, Port=5432
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: rag-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+
+  # Optional: same network as Postgres — use Host "postgres", Port 5432 in the UI
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: rag-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '5051:80'
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
